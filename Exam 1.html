@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ගුරු විභාග - ප්‍රවීණතා පරීක්ෂණ පද්ධතිය</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+        
+        :root {
+            --primary-blue: #0f172a;
+            --accent-brand: #3b82f6;
+            --bg-surface: #f8fafc;
+        }
+
+        body { 
+            font-family: 'Noto Sans Sinhala', 'Inter', sans-serif; 
+            background-color: #e2e8f0;
+            background-image: 
+                radial-gradient(at 40% 20%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, rgba(236, 72, 153, 0.05) 0px, transparent 50%),
+                radial-gradient(at 0% 50%, rgba(99, 102, 241, 0.1) 0px, transparent 50%);
+            min-height: 100vh;
+            color: #1e293b;
+            scroll-behavior: smooth;
+            /* Prevent horizontal scroll on mobile */
+            overflow-x: hidden; 
+        }
+
+        /* --- Cards --- */
+        .dash-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid #ffffff;
+            border-radius: 24px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dash-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent-brand);
+        }
+
+        .dash-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 6px;
+            background: linear-gradient(90deg, var(--accent-brand), #8b5cf6);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .dash-card:hover::before { opacity: 1; }
+
+        /* --- PHYSICAL PAPER STYLING (Responsive) --- */
+        .physical-paper-container {
+            background-color: #ffffff;
+            color: #000000;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.1);
+            /* Responsive Padding */
+            padding: 20px; 
+            max-width: 850px;
+            margin: 0 auto;
+            min-height: 1100px;
+            font-size: 16px;
+            line-height: 1.7;
+            position: relative;
+            border-radius: 2px;
+        }
+
+        /* Stacked paper effect */
+        .physical-paper-container::before {
+            content: '';
+            position: absolute;
+            top: 5px; left: 5px; right: 5px; bottom: -5px;
+            background: #fff;
+            z-index: -1;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 2px;
+        }
+
+        @media (min-width: 768px) {
+            .physical-paper-container { padding: 60px; }
+        }
+
+        .instruction-box {
+            border: 2px solid #1e293b;
+            padding: 15px;
+            margin-bottom: 30px;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column; /* Mobile Default */
+            gap: 15px;
+            background: #f8fafc;
+        }
+
+        @media (min-width: 768px) {
+            .instruction-box { flex-direction: row; justify-content: space-between; gap: 0; }
+        }
+
+        .exam-header-details {
+            border-left: none;
+            padding-left: 0;
+            margin-left: 0;
+            border-top: 1px solid #cbd5e1;
+            padding-top: 15px;
+            margin-top: 5px;
+        }
+
+        @media (min-width: 768px) {
+            .exam-header-details {
+                border-left: 1px solid #000;
+                padding-left: 15px;
+                margin-left: 15px;
+                border-top: none;
+                padding-top: 0;
+                margin-top: 0;
+                min-width: 200px;
+            }
+        }
+
+        /* Question Layout */
+        .q-row {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            position: relative;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #e2e8f0;
+            flex-wrap: wrap; /* Allow wrapping on mobile */
+        }
+
+        .q-num {
+            min-width: 30px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .q-content {
+            flex-grow: 1;
+            width: calc(100% - 35px); /* Full width minus number */
+            padding-right: 0; /* Default mobile: no right padding */
+        }
+
+        @media (min-width: 768px) {
+            .q-content { padding-right: 140px; } /* Desktop: Make room for slot */
+        }
+
+        .q-text {
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: block;
+            color: #0f172a;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Mobile: 1 col */
+            gap: 10px;
+            font-size: 15px;
+        }
+
+        @media (min-width: 640px) {
+            .options-grid { grid-template-columns: 1fr 1fr; gap: 8px 30px; }
+        }
+
+        .paper-option {
+            cursor: pointer;
+            padding: 8px 12px; /* Larger touch target */
+            border-radius: 8px;
+            transition: all 0.1s;
+            color: #475569;
+            background-color: #f8fafc; /* Slight bg for better touch visibility */
+            border: 1px solid transparent;
+        }
+
+        @media (min-width: 768px) {
+            .paper-option { padding: 4px 8px; background: transparent; }
+        }
+
+        .paper-option:active { background-color: #e2e8f0; }
+
+        .paper-option.selected {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            font-weight: 600;
+            border-color: #bae6fd;
+        }
+
+        /* Responsive Answer Slot */
+        .answer-slot {
+            font-family: 'Courier Prime', monospace;
+            font-weight: bold;
+            font-size: 18px;
+            color: #94a3b8;
+            white-space: nowrap;
+            letter-spacing: 2px;
+            
+            /* Mobile Positioning: Static block at bottom right */
+            display: block;
+            width: 100%;
+            text-align: right;
+            margin-top: 15px;
+        }
+
+        @media (min-width: 768px) {
+            /* Desktop Positioning: Absolute Right */
+            .answer-slot {
+                position: absolute;
+                right: 0;
+                top: 5px;
+                width: auto;
+                margin-top: 0;
+                text-align: left;
+            }
+        }
+
+        .handwritten-answer {
+            color: #2563eb;
+            font-family: 'Courier Prime', monospace;
+            font-weight: 700;
+            font-size: 20px;
+            display: inline-block;
+            margin: 0 5px;
+        }
+
+        @media (min-width: 768px) {
+            .handwritten-answer {
+                position: absolute;
+                right: 35px;
+                top: -2px;
+                margin: 0;
+            }
+        }
+
+        /* --- Sticky Mobile Footer for Exam --- */
+        .mobile-exam-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 12px 20px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 50;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        @media (min-width: 768px) {
+            .mobile-exam-footer { display: none; } /* Hide on desktop */
+        }
+
+        /* --- Analytics Styling --- */
+        .analytics-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f5f9;
+        }
+
+        .stat-bar { height: 10px; background: #f1f5f9; border-radius: 99px; overflow: hidden; margin-top: 8px; }
+        .stat-fill { height: 100%; border-radius: 99px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        .animate-enter { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .modal-backdrop { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px); }
+        
+        /* Print Styles */
+        @media print {
+            body { background: white; }
+            nav, #activeHeader, .mobile-exam-footer, button { display: none !important; }
+            .physical-paper-container { box-shadow: none; margin: 0; width: 100%; max-width: 100%; border: none; padding: 0; }
+            .answer-slot { position: absolute; right: 0; top: 0; width: auto; text-align: left; margin-top: 0; }
+            .q-content { padding-right: 120px; }
+        }
+    </style>
+</head>
+<body class="antialiased pb-20 md:pb-0"> <!-- Padding bottom for mobile footer -->
+
+    <!-- Desktop Navbar -->
+    <nav class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 px-4 md:px-12 py-3 md:py-4 flex justify-between items-center print:hidden">
+        <div class="flex items-center gap-3 md:gap-4">
+            <div class="bg-slate-900 p-2 md:p-2.5 rounded-xl shadow-lg">
+                <i class="fas fa-graduation-cap text-white text-lg md:text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-base md:text-lg leading-none text-slate-800 uppercase tracking-tight">ගුරු විභාග <span class="text-blue-600">ප්‍රවීණතා</span></h1>
+                <p class="text-[9px] md:text-[10px] text-slate-500 font-bold mt-1 uppercase tracking-[0.2em] hidden sm:block">Professional Analytics Dashboard</p>
+            </div>
+        </div>
+        
+        <!-- Desktop Header Actions -->
+        <div id="activeHeader" class="hidden md:flex items-center gap-6">
+            <div class="flex items-center gap-3 bg-white border border-slate-200 px-5 py-2 rounded-full shadow-sm">
+                <i class="far fa-clock text-blue-600"></i>
+                <span id="timeDisplay" class="font-mono font-bold text-lg text-slate-700">30:00</span>
+            </div>
+            <button onclick="showConfirmModal()" class="bg-slate-900 hover:bg-slate-800 text-white px-8 py-2.5 rounded-full font-bold transition-all shadow-lg active:scale-95">
+                විභාගය අවසන් කරන්න
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Sticky Footer (Only for Exam Mode) -->
+    <div id="mobileExamFooter" class="mobile-exam-footer hidden">
+        <div class="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full">
+            <i class="far fa-clock text-blue-600"></i>
+            <span id="timeDisplayMobile" class="font-mono font-bold text-slate-800">30:00</span>
+        </div>
+        <button onclick="showConfirmModal()" class="bg-slate-900 text-white px-6 py-2 rounded-full font-bold text-sm shadow-md active:scale-95">
+            අවසන් කරන්න
+        </button>
+    </div>
+
+    <main class="w-full mx-auto p-4 md:py-8 print:p-0">
+        
+        <!-- Selection Screen -->
+        <div id="selectionArea" class="animate-enter max-w-6xl mx-auto">
+            <div class="text-center mb-8 md:mb-12">
+                <span class="inline-block py-1 px-3 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-[10px] md:text-[11px] font-bold uppercase tracking-widest mb-4">Select Module</span>
+                <h2 class="text-3xl md:text-5xl font-black text-slate-800 mb-4 md:mb-6 tracking-tight">විභාග පත්‍රිකාව තෝරන්න</h2>
+                <p class="text-sm md:text-base text-slate-500 max-w-lg mx-auto px-4">ඔබේ දැනුම පරීක්ෂා කිරීම සඳහා පහත දැක්වෙන විෂය කාණ්ඩ අතුරින් එකක් තෝරන්න.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 px-2 md:px-4">
+                <!-- Card 1 -->
+                <div onclick="initExam(1)" class="dash-card p-6 md:p-8 cursor-pointer group text-center">
+                    <div class="w-14 h-14 md:w-16 md:h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                        <i class="fas fa-landmark text-xl md:text-2xl text-slate-600 group-hover:text-white"></i>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-bold mb-2 text-slate-800">පත්‍රිකාව 01</h3>
+                    <p class="text-xs md:text-sm mb-4 md:mb-6 text-slate-500">ඉතිහාසය, පුරාවිද්‍යාව සහ භූගෝල විද්‍යාව</p>
+                    <div class="flex justify-center gap-2 md:gap-3 text-[10px] md:text-xs font-bold text-slate-400">
+                        <span class="bg-slate-50 px-3 py-1 rounded-full border border-slate-100">Q: 60</span>
+                        <span class="bg-slate-50 px-3 py-1 rounded-full border border-slate-100">30 Min</span>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div onclick="initExam(2)" class="dash-card p-6 md:p-8 cursor-pointer group text-center">
+                    <div class="w-14 h-14 md:w-16 md:h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                        <i class="fas fa-gavel text-xl md:text-2xl text-slate-600 group-hover:text-white"></i>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-bold mb-2 text-slate-800">පත්‍රිකාව 02</h3>
+                    <p class="text-xs md:text-sm mb-4 md:mb-6 text-slate-500">ව්‍යවස්ථාව, අධ්‍යාපන ප්‍රතිපත්ති සහ නීතිය</p>
+                    <div class="flex justify-center gap-2 md:gap-3 text-[10px] md:text-xs font-bold text-slate-400">
+                        <span class="bg-slate-50 px-3 py-1 rounded-full border border-slate-100">Q: 60</span>
+                        <span class="bg-slate-50 px-3 py-1 rounded-full border border-slate-100">30 Min</span>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div onclick="initExam(3)" class="dash-card p-6 md:p-8 cursor-pointer group text-center">
+                    <div class="w-14 h-14 md:w-16 md:h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 md:mb-6 group-hover:bg-amber-600 group-hover:text-white transition-all">
+                        <i class="fas fa-microchip text-xl md:text-2xl text-slate-600 group-hover:text-white"></i>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-bold mb-2 text-slate-800">පත්‍රිකාව 03</h3>
+                    <p class="text-xs md:text-sm mb-4 md:mb-6 text-slate-500">විද්‍යාව, තාක්ෂණය, IQ සහ කාලීන කරුණු</p>
+                    <div class="flex justify-center gap-2 md:gap-3 text-[10px] md:text-xs font-bold text-slate-400">
+                        <span class="bg-slate-50 px-3 py-1 rounded-full border border-slate-100">Q: 60</span>
+                        <span class="bg-slate-50 px-3 py-1 rounded-full border border-slate-100">30 Min</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exam Interface (Physical Paper Mode) -->
+        <div id="examArea" class="hidden">
+            <div class="physical-paper-container animate-enter">
+                
+                <!-- Instruction Header -->
+                <div class="instruction-box">
+                    <div>
+                        <p class="font-bold mb-1 text-slate-800">* මෙම ප්‍රශ්න පත්‍රය, ප්‍රශ්න 60 කින් හා පිටු 04 කින් යුක්ත වේ.</p>
+                        <p class="font-bold mb-1 text-slate-800">* ප්‍රශ්න සියල්ලටම පිළිතුරු මෙම පත්‍රයේ ම සපයන්න.</p>
+                        <p class="font-bold text-slate-800">* ඔබේ පිළිතුරු පැහැදිලි ලෙස නිල් හෝ කළු පෑනෙන් පමණක් ලියන්න.</p>
+                    </div>
+                    <div class="exam-header-details text-slate-800">
+                        <div class="mb-2 md:mb-4 pt-2">
+                            <span class="font-bold">උත්තර පත්‍රය පරීක්ෂා කළේ:</span>
+                            <div class="border-b border-slate-400 mt-4 md:mt-6"></div>
+                        </div>
+                        <div>
+                            <span class="font-bold border-2 border-slate-800 px-3 py-1 rounded inline-block mb-1">විභාග අංකය : ..............................</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-8 font-bold text-sm text-slate-700 bg-slate-50 p-3 border-l-4 border-blue-500">
+                    <i class="fas fa-info-circle mr-2"></i> අංක 1 සිට 60 වන තෙක් එක් එක් ප්‍රශ්නයට නිවැරදි පිළිතුර තෝරා, ඊට අදාළ අංකය ප්‍රශ්නය ඉදිරියේ දී ඇති තිත් ඉර මත ලියන්න.
+                </div>
+
+                <!-- Questions List -->
+                <div id="questionsContainer" class="space-y-2">
+                    <!-- Questions Injected Here -->
+                </div>
+                
+                <div class="mt-20 pt-10 border-t-2 border-slate-800 text-center print:hidden hidden md:block">
+                    <p class="text-slate-500 text-sm mb-6 font-bold">සියලු පිළිතුරු සපයා ඇත්දැයි තහවුරු කරගන්න.</p>
+                    <button onclick="showConfirmModal()" class="bg-slate-900 hover:bg-slate-800 text-white px-12 py-4 rounded-xl font-bold text-lg shadow-xl transition-all">
+                        ප්‍රශ්න පත්‍රය අවසන් කරන්න
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Result Interface -->
+        <div id="resultArea" class="hidden animate-enter max-w-6xl mx-auto">
+            
+            <div class="text-center mb-8 md:mb-10">
+                <span class="bg-emerald-100 text-emerald-700 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest">විභාග ප්‍රතිඵල</span>
+                <h2 class="text-3xl md:text-4xl font-black text-slate-800 mt-4">කාර්ය සාධන විශ්ලේෂණය</h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 px-2 md:px-0">
+                
+                <!-- Main Score Card -->
+                <div class="lg:col-span-4 analytics-card text-center">
+                    <div class="relative w-40 h-40 md:w-48 md:h-48 mx-auto mb-6">
+                        <svg class="w-full h-full" viewBox="0 0 36 36">
+                            <path class="text-slate-100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3" />
+                            <path id="scoreCircle" class="text-blue-600" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3" />
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span id="percentageDisplay" class="text-4xl md:text-5xl font-black text-slate-800">0%</span>
+                            <span class="text-xs text-slate-400 font-bold uppercase mt-1">සමස්ත ලකුණු</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mt-8 pt-8 border-t border-slate-100">
+                        <div>
+                            <p class="text-xs text-slate-400 font-bold uppercase">නිවැරදි</p>
+                            <p id="correctDisplay" class="text-2xl font-bold text-emerald-600">0</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 font-bold uppercase">වැරදි</p>
+                            <p id="wrongDisplay" class="text-2xl font-bold text-red-500">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Analytics -->
+                <div class="lg:col-span-8 grid grid-cols-1 gap-6">
+                    
+                    <!-- Category Breakdown -->
+                    <div class="analytics-card">
+                        <h3 class="font-bold text-slate-800 mb-6 flex items-center gap-2">
+                            <i class="fas fa-chart-pie text-blue-500"></i> විෂය පථ විශ්ලේෂණය
+                        </h3>
+                        <div id="categoryBreakdown" class="space-y-5">
+                            <!-- Category bars injected here -->
+                        </div>
+                    </div>
+
+                    <!-- AI Insights -->
+                    <div class="analytics-card bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none">
+                        <h3 class="font-bold text-blue-300 mb-3 flex items-center gap-2">
+                            <i class="fas fa-lightbulb"></i> වැඩිදියුණු කළ යුතු අංශ
+                        </h3>
+                        <p id="aiInsightText" class="text-slate-300 text-sm leading-relaxed">
+                            විශ්ලේෂණය කරමින් පවතී...
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-center gap-4 mt-12 pb-20 px-4">
+                <button onclick="viewReview()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-8 py-3 rounded-full font-bold transition-all shadow-sm w-full md:w-auto">
+                    <i class="fas fa-file-alt mr-2"></i> පිළිතුරු පත්‍රය බලන්න
+                </button>
+                <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-bold transition-all shadow-lg shadow-blue-200 w-full md:w-auto">
+                    <i class="fas fa-redo mr-2"></i> නව පරීක්ෂණයක්
+                </button>
+            </div>
+
+            <div id="reviewList" class="hidden mt-12 mb-32 physical-paper-container"></div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="confirmModal" class="fixed inset-0 modal-backdrop z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl animate-enter text-center">
+            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-check text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">විභාගය අවසන් කරන්නද?</h3>
+            <p id="modalMsg" class="text-slate-500 mb-8 text-sm">කරුණාකර සියලු පිළිතුරු නැවත පරීක්ෂා කර බලන්න.</p>
+            <div class="space-y-3">
+                <button onclick="processSubmit()" class="w-full py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800">ඔව්, අවසන් කරන්න</button>
+                <button onclick="closeConfirmModal()" class="w-full py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50">තව වේලාව අවශ්‍යයි</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Data Structure with Categories ---
+        const masterQuestions = {
+            1: [ 
+                {q: "අනුරාධපුර නගරය සැලසුම් කළ රජු ලෙස සැලකෙන්නේ කවුද?", a: ["දේවානම් පියතිස්ස රජ", "පණ්ඩුකාභය රජ", "දුටුගැමුණු රජ", "ධාතුසේන රජ"], r: 1, c: "History"},
+                {q: "පරාක්‍රම සමුද්‍රය නිර්මාණය කළ රජු කවුද?", a: ["I වන විජයබාහු රජ", "මහා පරාක්‍රමබාහු රජ", "නිශ්ශංකමල්ල රජ", "මහසෙන් රජ"], r: 1, c: "History"},
+                {q: "සෝල්බරි ආණ්ඩුක්‍රම ව්‍යවස්ථාව හඳුන්වා දුන් වර්ෂය කුමක්ද?", a: ["1931", "1947", "1972", "1978"], r: 1, c: "History"},
+                {q: "ශ්‍රී ලංකාවට බුදු දහම රැගෙන ආවේ කාගේ පාලන සමයේදීද?", a: ["වළගම්බා රජතුමා", "දේවානම් පියතිස්ස රජතුමා", "දුටුගැමුණු රජතුමා", "මුටසීව රජතුමා"], r: 1, c: "History"},
+                {q: "ශ්‍රී ලංකාවේ මුල්ම රාජ්‍ය මන්ත්‍රණ සභාව (State Council) ආරම්භ වූ වර්ෂය?", a: ["1931", "1948", "1972", "1978"], r: 0, c: "History"},
+                {q: "පේදුරු තුඩුව පිහිටා ඇත්තේ කුමන දිස්ත්‍රික්කයේද?", a: ["මන්නාරම", "යාපනය", "මුලතිව්", "ත්‍රිකුණාමලය"], r: 1, c: "Geography"},
+                {q: "ශ්‍රී ලංකාවේ දිගම ගඟ වන මහවැලි ගඟේ දිග කිලෝමීටර් කීයද?", a: ["335 km", "250 km", "350 km", "400 km"], r: 0, c: "Geography"},
+                {q: "ශ්‍රී ලංකාවේ උසම දිය ඇල්ල කුමක්ද?", a: ["දියලුම ඇල්ල", "බඹරකන්ද ඇල්ල", "දුන්හිඳ ඇල්ල", "රාවණා ඇල්ල"], r: 1, c: "Geography"},
+                {q: "ලෝකයේ කුඩාම මහාද්වීපය කුමක්ද?", a: ["යුරෝපය", "ඕස්ට්‍රේලියාව", "ඇන්ටාක්ටිකාව", "අප්‍රිකාව"], r: 1, c: "Geography"},
+                {q: "මහවැලි ගඟ මුහුදට වැටෙන්නේ කුමන ස්ථානයෙන්ද?", a: ["මන්නාරම", "ත්‍රිකුණාමලය (කොඩ්ඩියාර් බොක්ක)", "පානදුර", "හම්බන්තොට"], r: 1, c: "Geography"}
+            ],
+            2: [ 
+                {q: "නිදහස් අධ්‍යාපනයේ පියා ලෙස හැඳින්වෙන්නේ කවුද?", a: ["ටී.බී. ජයා", "සී.ඩබ්.ඩබ්. කන්නන්ගර", "එන්.එම්. පෙරේරා", "එස්.ඩබ්.ආර්.ඩී. බණ්ඩාරනායක"], r: 1, c: "Education"},
+                {q: "ශ්‍රී ලංකාවේ ප්‍රථම විධායක ජනාධිපතිවරයා කවුද?", a: ["විලියම් ගොපල්ලව", "ජේ.ආර්. ජයවර්ධන", "ආර්. ප්‍රේමදාස", "එස්.ඩබ්.ආර්.ඩී. බණ්ඩාරනායක"], r: 1, c: "Law"},
+                {q: "තොරතුරු දැනගැනීමේ අයිතිය මූලික අයිතිවාසිකමක් ලෙස පිළිගත් ව්‍යවස්ථා සංශෝධනය?", a: ["13 වන", "18 වන", "19 වන", "21 වන"], r: 2, c: "Law"},
+                {q: "ලෝක ගුරු දිනය සමරනු ලබන්නේ කවදාද?", a: ["සැප්තැම්බර් 05", "ඔක්තෝබර් 05", "නොවැම්බර් 05", "දෙසැම්බර් 05"], r: 1, c: "Education"},
+                {q: "ජාතික අධ්‍යාපන ආයතනය (NIE) පිහිටා ඇත්තේ කොහේද?", a: ["කොළඹ", "මහරගම", "බත්තරමුල්ල", "නාරාහේන්පිට"], r: 1, c: "Education"},
+                {q: "අධ්‍යාපනයේ 3H සංකල්පයට අයත් නොවන පදය?", a: ["Head", "Health", "Heart", "Hand"], r: 1, c: "Education"},
+                {q: "STEAM අධ්‍යාපන සංකල්පයේ 'A' අකුරෙන් අදහස් වන්නේ කුමක්ද?", a: ["Agriculture", "Arts", "Aeronautics", "Architecture"], r: 1, c: "Education"},
+                {q: "ශ්‍රී ලංකාවේ වත්මන් අධ්‍යාපන ප්‍රතිපත්ති රාමුව (2025) ආවරණය කරන කාලසීමාව?", a: ["2020-2030", "2023-2033", "2025-2035", "2024-2034"], r: 1, c: "Education"}
+            ],
+            3: [ 
+                {q: "ChatGPT නිර්මාණය කළ ආයතනය කුමක්ද?", a: ["Google", "Microsoft", "OpenAI", "Meta"], r: 2, c: "Tech"},
+                {q: "ශ්‍රී ලංකාවේ ප්‍රථම චන්ද්‍රිකාව කුමක්ද?", a: ["ආර්යභට්ට", "රාවණා - 1", "ලංකාසැට්", "රොහිනී"], r: 1, c: "Tech"},
+                {q: "එක්සත් ජාතීන්ගේ සංවිධානයේ (UN) වත්මන් මහ ලේකම්වරයා?", a: ["කොෆි අනන්", "බැන් කි මූන්", "ඇන්ටෝනියෝ ගුටරෙස්", "ඩොනල්ඩ් ට්‍රම්ප්"], r: 2, c: "Current Affairs"},
+                {q: "සාර්ක් (SAARC) සංවිධානයේ මූලස්ථානය පිහිටා ඇත්තේ කොහේද?", a: ["නවදිල්ලිය", "ඩකා", "කත්මණ්ඩු (නේපාලය)", "කොළඹ"], r: 2, c: "Current Affairs"},
+                {q: "2, 5, 10, 17, 26, ? හි ඊළඟ සංඛ්‍යාව කුමක්ද?", a: ["35", "36", "37", "40"], r: 2, c: "IQ"},
+                {q: "ABC : XYZ නම් DEF : ?", a: ["UVW", "WUV", "WVU", "VUT"], r: 2, c: "IQ"},
+                {q: "ඉන්දියාවේ 'චන්ද්‍රයාන් - 3' චන්ද්‍රිකාව සඳ මත පතිත වූයේ කොහේද?", a: ["උත්තර ධ්‍රැවය", "දකුණු ධ්‍රැවය", "සමකය", "අඳුරු කලාපය"], r: 1, c: "Tech"}
+            ]
+        };
+
+        const catNames = {
+            "History": "ඉතිහාසය",
+            "Geography": "භූගෝල විද්‍යාව",
+            "Education": "අධ්‍යාපන විද්‍යාව",
+            "Law": "නීතිය හා ව්‍යවස්ථාව",
+            "Tech": "විද්‍යාව හා තාක්ෂණය",
+            "Current Affairs": "කාලීන තොරතුරු",
+            "IQ": "බුද්ධි පරීක්ෂණ"
+        };
+
+        let currentPaperQs = [];
+        let userChoices = [];
+        let timeRemaining = 1800;
+        let examTimer;
+
+        function initExam(paperId) {
+            const baseQs = masterQuestions[paperId] || [];
+            currentPaperQs = [];
+            for (let i = 0; i < 60; i++) {
+                let template = baseQs[i % baseQs.length];
+                currentPaperQs.push({ ...template, id: i + 1 });
+            }
+
+            userChoices = new Array(60).fill(null);
+            
+            document.getElementById('selectionArea').classList.add('hidden');
+            document.getElementById('examArea').classList.remove('hidden');
+            // Show Active Header on Desktop, Mobile Footer on Mobile
+            if (window.innerWidth >= 768) {
+                document.getElementById('activeHeader').classList.remove('hidden');
+            } else {
+                document.getElementById('mobileExamFooter').classList.remove('hidden');
+                document.getElementById('mobileExamFooter').style.display = 'flex';
+            }
+            
+            renderExamContent();
+            runTimer();
+            window.scrollTo(0, 0);
+        }
+
+        function renderExamContent() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            currentPaperQs.forEach((q, idx) => {
+                const div = document.createElement('div');
+                div.className = 'q-row';
+                
+                div.innerHTML = `
+                    <div class="q-num">${idx + 1}.</div>
+                    <div class="q-content">
+                        <span class="q-text">${q.q}</span>
+                        <div class="options-grid">
+                            ${q.a.map((opt, optIdx) => `
+                                <div class="paper-option" id="q${idx}o${optIdx}" onclick="recordAns(${idx}, ${optIdx})">
+                                    (${optIdx + 1}) ${opt}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <span class="answer-slot" id="ans-slot-${idx}">(..........)</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function recordAns(qIdx, optIdx) {
+            userChoices[qIdx] = optIdx;
+            
+            for(let i=0; i<4; i++) {
+                const el = document.getElementById(`q${qIdx}o${i}`);
+                if(el) el.classList.remove('selected');
+            }
+            const selectedEl = document.getElementById(`q${qIdx}o${optIdx}`);
+            if(selectedEl) selectedEl.classList.add('selected');
+
+            const slot = document.getElementById(`ans-slot-${qIdx}`);
+            slot.innerHTML = `( <span class="handwritten-answer">${optIdx + 1}</span> ........ )`;
+        }
+
+        function runTimer() {
+            examTimer = setInterval(() => {
+                timeRemaining--;
+                const m = Math.floor(timeRemaining / 60);
+                const s = timeRemaining % 60;
+                const timeStr = `${m}:${s.toString().padStart(2, '0')}`;
+                document.getElementById('timeDisplay').innerText = timeStr;
+                document.getElementById('timeDisplayMobile').innerText = timeStr;
+                
+                if (timeRemaining <= 0) {
+                    processSubmit();
+                }
+            }, 1000);
+        }
+
+        function showConfirmModal() {
+            const unanswered = userChoices.filter(c => c === null).length;
+            document.getElementById('modalMsg').innerText = unanswered > 0 
+                ? `ඔබ තවමත් ප්‍රශ්න ${unanswered} කට පිළිතුරු සපයා නැත. මෙම ප්‍රශ්නවලට ලකුණු නොලැබෙනු ඇත.` 
+                : "සියලු ප්‍රශ්න වලට පිළිතුරු සපයා ඇත. ඉදිරිපත් කිරීමට සූදානම්ද?";
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.add('hidden');
+        }
+
+        function processSubmit() {
+            clearInterval(examTimer);
+            document.getElementById('confirmModal').classList.add('hidden');
+            document.getElementById('examArea').classList.add('hidden');
+            document.getElementById('activeHeader').classList.add('hidden');
+            document.getElementById('mobileExamFooter').classList.add('hidden');
+            document.getElementById('resultArea').classList.remove('hidden');
+            
+            let correctCount = 0;
+            let categoryStats = {};
+
+            currentPaperQs.forEach((q, i) => {
+                if (!categoryStats[q.c]) categoryStats[q.c] = { total: 0, correct: 0 };
+                categoryStats[q.c].total++;
+                if (userChoices[i] === q.r) {
+                    correctCount++;
+                    categoryStats[q.c].correct++;
+                }
+            });
+
+            const scorePercent = Math.round((correctCount / 60) * 100);
+            document.getElementById('percentageDisplay').innerText = `${scorePercent}%`;
+            document.getElementById('correctDisplay').innerText = correctCount;
+            document.getElementById('wrongDisplay').innerText = 60 - correctCount;
+
+            const circle = document.getElementById('scoreCircle');
+            const circumference = 2 * Math.PI * 15.9155;
+            const offset = circumference - (scorePercent / 100) * circumference;
+            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+            circle.style.strokeDashoffset = circumference;
+            setTimeout(() => {
+                circle.style.transition = 'stroke-dashoffset 1.5s ease-out';
+                circle.style.strokeDashoffset = offset;
+            }, 500);
+
+            const breakdownContainer = document.getElementById('categoryBreakdown');
+            breakdownContainer.innerHTML = '';
+            let weakCategories = [];
+
+            for (const [catKey, data] of Object.entries(categoryStats)) {
+                const catName = catNames[catKey] || catKey;
+                const percent = Math.round((data.correct / data.total) * 100);
+                if (percent < 50) weakCategories.push(catName);
+                let barColor = 'bg-blue-500';
+                if (percent >= 80) barColor = 'bg-emerald-500';
+                if (percent < 50) barColor = 'bg-amber-500';
+
+                breakdownContainer.innerHTML += `
+                    <div>
+                        <div class="flex justify-between text-sm font-bold text-slate-600 mb-1">
+                            <span>${catName}</span>
+                            <span>${percent}%</span>
+                        </div>
+                        <div class="stat-bar">
+                            <div class="stat-fill ${barColor}" style="width: ${percent}%"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const insightText = document.getElementById('aiInsightText');
+            if (scorePercent >= 80) {
+                insightText.innerHTML = "විශිෂ්ටයි! ඔබ සියලුම විෂය ක්ෂේත්‍රයන්හි ඉතා ඉහළ ප්‍රගතියක් පෙන්වයි. අඛණ්ඩව ප්‍රශ්න පත්‍ර පුහුණු වන්න.";
+            } else if (weakCategories.length > 0) {
+                insightText.innerHTML = `ඔබ <strong>${weakCategories.join(', ')}</strong> යන අංශවල වැඩි අවධානයක් යොමු කළ යුතුය. එම පාඩම් නැවත අධ්‍යයනය කිරීමෙන් ලකුණු මට්ටම ඉහළ නංවා ගත හැක.`;
+            } else {
+                insightText.innerHTML = "ඔබේ දැනුම මට්ටම මධ්‍යස්ථයි. කාල කළමනාකරණය සහ බහුවරණ ප්‍රශ්න කෙරෙහි වැඩි අවධානයක් යොමු කරන්න.";
+            }
+
+            window.scrollTo(0, 0);
+        }
+
+        function viewReview() {
+            const list = document.getElementById('reviewList');
+            if (!list.classList.contains('hidden')) {
+                list.classList.add('hidden');
+                return;
+            }
+            list.innerHTML = '<div class="physical-paper-container mt-8"><div class="text-center mb-8"><h3 class="text-xl font-bold underline">පිළිතුරු පත්‍ර විවරණය</h3><p class="text-sm text-gray-500">පහත දැක්වෙන්නේ ඔබේ පිළිතුරු සහ නිවැරදි පිළිතුරු සැසඳීමයි.</p></div><div id="reviewItems"></div></div>';
+            const reviewContainer = document.getElementById('reviewItems');
+
+            currentPaperQs.forEach((q, i) => {
+                const isCorrect = userChoices[i] === q.r;
+                let optsHtml = '';
+                q.a.forEach((opt, optIdx) => {
+                    let style = 'color: #64748b;';
+                    let icon = '';
+                    
+                    if (optIdx === q.r) { 
+                        style = 'font-weight: bold; color: #166534; background: #dcfce7; padding: 2px 5px; border-radius: 4px;'; 
+                        icon = '✓';
+                    } else if (optIdx === userChoices[i]) { 
+                        style = 'font-weight: bold; color: #991b1b; text-decoration: line-through; decoration-color: red;'; 
+                        icon = '✗';
+                    }
+                    
+                    optsHtml += `<div style="margin-bottom: 4px; ${style}">(${optIdx + 1}) ${opt} ${icon}</div>`;
+                });
+                
+                const div = document.createElement('div');
+                div.className = 'q-row';
+                div.style.borderBottom = "1px solid #f1f5f9";
+                
+                div.innerHTML = `
+                    <div class="q-num">${i + 1}.</div>
+                    <div class="q-content">
+                        <span class="q-text">${q.q}</span>
+                        <div style="font-size: 14px; display: grid; grid-template-columns: 1fr; gap: 8px;">${optsHtml}</div> <!-- Grid 1 col for review on mobile too -->
+                        <div style="margin-top: 8px; font-size: 11px; font-weight: bold; color: #64748b; text-transform: uppercase;">Category: ${catNames[q.c] || q.c}</div>
+                    </div>
+                    <span class="answer-slot" style="color: ${isCorrect ? '#166534' : '#ef4444'}; font-size: 14px;">${isCorrect ? 'Correct' : 'Wrong'}</span>
+                `;
+                reviewContainer.appendChild(div);
+            });
+            list.classList.remove('hidden');
+            list.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
